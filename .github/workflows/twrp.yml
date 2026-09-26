@@ -1,0 +1,181 @@
+name: Build TWRP A20
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build TWRP
+    runs-on: ubuntu-24.04
+
+    steps:
+
+      # ─────────────────────────────
+      # Checkout Device Tree
+      # ─────────────────────────────
+      - name: Checkout Device Tree
+        uses: actions/checkout@v4
+
+      # ─────────────────────────────
+      # Free GitHub Runner Space
+      # ─────────────────────────────
+      - name: Free Disk Space
+        run: |
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/powershell
+          sudo docker system prune -af || true
+
+          df -h
+
+      # ─────────────────────────────
+      # Install Dependencies
+      # ─────────────────────────────
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+
+          sudo apt-get install -y \
+            git \
+            curl \
+            repo \
+            python3 \
+            bc \
+            bison \
+            build-essential \
+            ccache \
+            flex \
+            g++-multilib \
+            gcc-multilib \
+            gnupg \
+            libc6-dev-i386 \
+            lib32z1-dev \
+            liblz4-tool \
+            libncurses5-dev \
+            libssl-dev \
+            libxml2 \
+            libxml2-utils \
+            lzop \
+            pngcrush \
+            rsync \
+            schedtool \
+            squashfs-tools \
+            xsltproc \
+            zip \
+            zlib1g-dev
+
+      # ─────────────────────────────
+      # Git Configuration
+      # ─────────────────────────────
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      # ─────────────────────────────
+      # Initialize TWRP
+      # ─────────────────────────────
+      - name: Initialize TWRP Source
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/twrp"
+
+          cd "$GITHUB_WORKSPACE/twrp"
+
+          repo init \
+            --depth=1 \
+            -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git \
+            -b twrp-12.1 \
+            --git-lfs
+
+      # ─────────────────────────────
+      # Sync TWRP Source
+      # ─────────────────────────────
+      - name: Sync TWRP Source
+        working-directory: ${{ github.workspace }}/twrp
+        run: |
+          repo sync \
+            -c \
+            -j$(nproc --all) \
+            --force-sync \
+            --no-clone-bundle \
+            --no-tags
+
+      # ─────────────────────────────
+      # Copy Device Tree
+      # ─────────────────────────────
+      - name: Add A20 Device Tree
+        run: |
+          mkdir -p twrp/device/samsung/a20
+
+          find . \
+            -maxdepth 1 \
+            ! -name "." \
+            ! -name "twrp" \
+            ! -name ".git" \
+            ! -name ".github" \
+            -exec cp -a {} twrp/device/samsung/a20/ \;
+
+      # ─────────────────────────────
+      # Setup Build Environment
+      # ─────────────────────────────
+      - name: Setup TWRP
+        working-directory: ${{ github.workspace }}/twrp
+        run: |
+          export ALLOW_MISSING_DEPENDENCIES=true
+
+          source build/envsetup.sh
+
+          lunch twrp_a20-eng
+
+      # ─────────────────────────────
+      # Build Recovery
+      # ─────────────────────────────
+      - name: Build TWRP
+        working-directory: ${{ github.workspace }}/twrp
+        run: |
+          export ALLOW_MISSING_DEPENDENCIES=true
+
+          source build/envsetup.sh
+
+          lunch twrp_a20-eng
+
+          mka recoveryimage -j$(nproc --all)
+
+      # ─────────────────────────────
+      # Check Output
+      # ─────────────────────────────
+      - name: Check Build Output
+        working-directory: ${{ github.workspace }}/twrp
+        run: |
+          echo "================================"
+          echo "TWRP BUILD OUTPUT"
+          echo "================================"
+
+          ls -lh out/target/product/a20/ || true
+
+          echo
+          echo "Recovery images:"
+
+          find out/target/product/a20 \
+            -type f \
+            \( \
+              -name "recovery.img" \
+              -o -name "recovery*.img" \
+              -o -name "*.zip" \
+            \) \
+            -print
+
+      # ─────────────────────────────
+      # Upload Recovery
+      # ─────────────────────────────
+      - name: Upload TWRP
+        uses: actions/upload-artifact@v4
+        with:
+          name: TWRP-A20
+          path: |
+            twrp/out/target/product/a20/recovery.img
+            twrp/out/target/product/a20/*.zip
+          if-no-files-found: warn
+
+
