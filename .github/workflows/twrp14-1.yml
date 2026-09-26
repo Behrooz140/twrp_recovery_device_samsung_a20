@@ -210,6 +210,21 @@ jobs:
           echo "===== DISK ====="
           df -h
 
+          echo "===== DISK USAGE BEFORE BUILD ====="
+          df -h
+
+          echo
+          echo "===== WORKSPACE SIZE ====="
+          du -sh "$GITHUB_WORKSPACE" || true
+
+          echo
+          echo "===== TWRP SOURCE SIZE ====="
+          du -sh "$GITHUB_WORKSPACE/twrp" || true
+
+          echo
+          echo "===== OUT SIZE ====="
+          du -sh "$GITHUB_WORKSPACE/twrp/out" 2>/dev/null || echo "out does not exist"
+
       # ─────────────────────────────
       # Build Recovery
       # ─────────────────────────────
@@ -225,7 +240,7 @@ jobs:
           free -h
           df -h
 
-          mka recoveryimage -j$(nproc --all)
+          mka recoveryimage -j2
 
       # ─────────────────────────────
       # Check Output
