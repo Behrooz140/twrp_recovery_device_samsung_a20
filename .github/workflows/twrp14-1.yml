@@ -135,23 +135,31 @@ jobs:
       # ─────────────────────────────
       # Setup Build Environment
       # ─────────────────────────────
-      - name: Setup TWRP 14.1
+
+      - name: Inspect TWRP 14.1 Device Tree
         working-directory: ${{ github.workspace }}/twrp
         run: |
           export ALLOW_MISSING_DEPENDENCIES=true
 
-          source build/envsetup.sh
-
-          echo "===== AVAILABLE LUNCH TARGETS ====="
-          lunch
+          source build/envsetup.sh || true
 
           echo
-          echo "===== DEVICE TREE ====="
+          echo "========== AndroidProducts.mk =========="
           cat device/samsung/a20/AndroidProducts.mk
 
           echo
-          echo "===== DEVICE MAKEFILES ====="
-          ls -la device/samsung/a20/
+          echo "========== vendorsetup.sh =========="
+          cat device/samsung/a20/vendorsetup.sh
+
+          echo
+          echo "========== DEVICE TREE FILES =========="
+          find device/samsung/a20 -maxdepth 2 -type f | sort
+
+          echo
+          echo "========== PRODUCT MAKEFILES =========="
+          find device/samsung/a20 -type f \
+            \( -name "*product*.mk" -o -name "*twrp*.mk" \) \
+            -print
       # ─────────────────────────────
       # Build Recovery
       # ─────────────────────────────
