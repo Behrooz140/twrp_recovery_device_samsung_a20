@@ -230,11 +230,11 @@ jobs:
       # ─────────────────────────────
 
       - name: Build TWRP
-  working-directory: ${{ github.workspace }}/twrp
+        working-directory: ${{ github.workspace }}/twrp
         run: |
           echo "===== START RESOURCE MONITOR ====="
 
-    (
+          (
             while true; do
               echo
               echo "===== RESOURCE $(date '+%H:%M:%S') ====="
@@ -243,12 +243,12 @@ jobs:
               du -sh "$GITHUB_WORKSPACE/twrp/out" 2>/dev/null || true
               sleep 10
             done
-    ) &
+          ) &
           MONITOR_PID=$!
 
           cleanup() {
             kill "$MONITOR_PID" 2>/dev/null || true
-    }
+          }
           trap cleanup EXIT
 
           export ALLOW_MISSING_DEPENDENCIES=true
