@@ -132,46 +132,68 @@ jobs:
             ! -name ".github" \
             -exec cp -a {} twrp/device/samsung/a20/ \;
 
+      - name: Patch Device Tree for TWRP 14.1
+        working-directory: ${{ github.workspace }}/twrp
+        run: |
+          echo "Patching A20 Device Tree for TWRP 14.1..."
+
+          # Remove obsolete lunch definitions
+          cat > device/samsung/a20/vendorsetup.sh <<'EOF'
+          #
+          # Copyright (C) 2026 The Android Open Source Project
+          # Copyright (C) 2026 SebaUbuntu's TWRP device tree generator
+          #
+          # SPDX-License-Identifier: Apache-2.0
+          #
+          EOF
+
+          # Use the Android 14.1 lunch format
+          cat > device/samsung/a20/AndroidProducts.mk <<'EOF'
+          #
+          # Copyright (C) 2026 The Android Open Source Project
+          # Copyright (C) 2026 SebaUbuntu's TWRP device tree generator
+          #
+          # SPDX-License-Identifier: Apache-2.0
+          #
+
+          PRODUCT_MAKEFILES := \
+              $(LOCAL_DIR)/twrp_a20.mk
+
+          COMMON_LUNCH_CHOICES := \
+              twrp_a20-trunk_staging-eng \
+              twrp_a20-trunk_staging-userdebug \
+              twrp_a20-trunk_staging-user
+          EOF
+
+          echo
+          echo "========== PATCHED AndroidProducts.mk =========="
+          cat device/samsung/a20/AndroidProducts.mk
+
+          echo
+          echo "========== PATCHED vendorsetup.sh =========="
+          cat device/samsung/a20/vendorsetup.sh
+
       # ─────────────────────────────
       # Setup Build Environment
       # ─────────────────────────────
 
-      - name: Inspect TWRP 14.1 Device Tree
+      - name: Setup Build
         working-directory: ${{ github.workspace }}/twrp
         run: |
           export ALLOW_MISSING_DEPENDENCIES=true
+          source build/envsetup.sh
+          lunch twrp_a20-trunk_staging-eng
 
-          source build/envsetup.sh || true
-
-          echo
-          echo "========== AndroidProducts.mk =========="
-          cat device/samsung/a20/AndroidProducts.mk
-
-          echo
-          echo "========== vendorsetup.sh =========="
-          cat device/samsung/a20/vendorsetup.sh
-
-          echo
-          echo "========== DEVICE TREE FILES =========="
-          find device/samsung/a20 -maxdepth 2 -type f | sort
-
-          echo
-          echo "========== PRODUCT MAKEFILES =========="
-          find device/samsung/a20 -type f \
-            \( -name "*product*.mk" -o -name "*twrp*.mk" \) \
-            -print
       # ─────────────────────────────
       # Build Recovery
       # ─────────────────────────────
-      - name: Build TWRP 14.1
+
+      - name: Build TWRP
         working-directory: ${{ github.workspace }}/twrp
         run: |
           export ALLOW_MISSING_DEPENDENCIES=true
-
           source build/envsetup.sh
-
-          lunch twrp_a20-eng
-
+          lunch twrp_a20-trunk_staging-eng
           mka recoveryimage -j$(nproc --all)
 
       # ─────────────────────────────
