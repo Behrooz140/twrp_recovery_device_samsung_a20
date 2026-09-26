@@ -225,6 +225,24 @@ jobs:
           echo "===== OUT SIZE ====="
           du -sh "$GITHUB_WORKSPACE/twrp/out" 2>/dev/null || echo "out does not exist"
 
+
+      - name: Increase Swap
+        run: |
+          echo "===== SWAP BEFORE ====="
+          free -h
+          swapon --show
+
+          sudo swapoff -a || true
+
+          sudo fallocate -l 8G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+
+          echo "===== SWAP AFTER ====="
+          free -h
+          swapon --show
+
       # ─────────────────────────────
       # Build Recovery
       # ─────────────────────────────
