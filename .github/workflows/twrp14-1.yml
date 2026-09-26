@@ -132,62 +132,60 @@ jobs:
             ! -name ".github" \
             -exec cp -a {} twrp/device/samsung/a20/ \;
 
+
       - name: Patch Device Tree for TWRP 14.1
         working-directory: ${{ github.workspace }}/twrp
         run: |
-          echo "Patching A20 Device Tree for TWRP 14.1..."
+          set -e
 
-          # Remove obsolete lunch definitions
-          cat > device/samsung/a20/vendorsetup.sh <<'EOF'
-          #
-          # Copyright (C) 2026 The Android Open Source Project
-          # Copyright (C) 2026 SebaUbuntu's TWRP device tree generator
-          #
-          # SPDX-License-Identifier: Apache-2.0
-          #
-          EOF
+          echo "===== BEFORE PATCH ====="
+          grep -nE 'TARGET_USES_64_BIT_BINDER|BOARD_BUILD_SYSTEM_ROOT_IMAGE' \
+            device/samsung/a20/BoardConfig.mk || true
 
-          # Use the Android 14.1 lunch format
+          echo
+          echo "===== PATCHING ====="
+
+          sed -i '/TARGET_USES_64_BIT_BINDER/d' \
+            device/samsung/a20/BoardConfig.mk
+
+          sed -i '/BOARD_BUILD_SYSTEM_ROOT_IMAGE/d' \
+            device/samsung/a20/BoardConfig.mk
+
+          # Remove obsolete lunch commands
+          sed -i '/^[[:space:]]*add_lunch_combo[[:space:]]/d' \
+            device/samsung/a20/vendorsetup.sh
+
+          # Replace lunch choices for TWRP 14.1
           cat > device/samsung/a20/AndroidProducts.mk <<'EOF'
-          #
-          # Copyright (C) 2026 The Android Open Source Project
-          # Copyright (C) 2026 SebaUbuntu's TWRP device tree generator
-          #
-          # SPDX-License-Identifier: Apache-2.0
-          #
+#
+# Copyright (C) 2026 The Android Open Source Project
+# Copyright (C) 2026 SebaUbuntu's TWRP device tree generator
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 
-          PRODUCT_MAKEFILES := \
-              $(LOCAL_DIR)/twrp_a20.mk
+PRODUCT_MAKEFILES := \
+    $(LOCAL_DIR)/twrp_a20.mk
 
-          COMMON_LUNCH_CHOICES := \
-              twrp_a20-ap2a-eng \
-              twrp_a20-ap2a-userdebug \
-              twrp_a20-ap2a-user
-          EOF
-
-          echo
-          echo "========== PATCHED AndroidProducts.mk =========="
-          cat device/samsung/a20/AndroidProducts.mk
+COMMON_LUNCH_CHOICES := \
+    twrp_a20-ap2a-eng \
+    twrp_a20-ap2a-userdebug \
+    twrp_a20-ap2a-user
+EOF
 
           echo
-          echo "========== PATCHED vendorsetup.sh =========="
+          echo "===== AFTER PATCH ====="
+
+          echo "--- BoardConfig ---"
+          grep -nE 'TARGET_USES_64_BIT_BINDER|BOARD_BUILD_SYSTEM_ROOT_IMAGE' \
+            device/samsung/a20/BoardConfig.mk || echo "Old BoardConfig variables removed."
+
+          echo "--- vendorsetup.sh ---"
           cat device/samsung/a20/vendorsetup.sh
 
+          echo "--- AndroidProducts.mk ---"
+          cat device/samsung/a20/AndroidProducts.mk
 
-      - name: Patch BoardConfig for TWRP 14.1
-        working-directory: ${{ github.workspace }}/twrp
-        run: |
-          echo "Patching BoardConfig.mk for TWRP 14.1..."
-
-          sed -i '/^[[:space:]]*TARGET_USES_64_BIT_BINDER[[:space:]]*[:?+]?=/d' \
-            device/samsung/a20/BoardConfig.mk
-
-          sed -i '/^[[:space:]]*BOARD_BUILD_SYSTEM_ROOT_IMAGE[[:space:]]*[:?+]?=/d' \
-            device/samsung/a20/BoardConfig.mk
-
-          echo
-          echo "========== PATCHED BoardConfig.mk =========="
-          nl -ba device/samsung/a20/BoardConfig.mk | sed -n '20,80p'
       # ─────────────────────────────
       # Setup Build Environment
       # ─────────────────────────────
