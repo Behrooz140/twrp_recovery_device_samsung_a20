@@ -160,9 +160,9 @@ jobs:
               $(LOCAL_DIR)/twrp_a20.mk
 
           COMMON_LUNCH_CHOICES := \
-              twrp_a20-trunk_staging-eng \
-              twrp_a20-trunk_staging-userdebug \
-              twrp_a20-trunk_staging-user
+              twrp_a20-ap2a-eng \
+              twrp_a20-ap2a-userdebug \
+              twrp_a20-ap2a-user
           EOF
 
           echo
@@ -182,7 +182,7 @@ jobs:
         run: |
           export ALLOW_MISSING_DEPENDENCIES=true
           source build/envsetup.sh
-          lunch twrp_a20-trunk_staging-eng
+          lunch twrp_a20-ap2a-eng
 
       # ─────────────────────────────
       # Build Recovery
@@ -193,7 +193,7 @@ jobs:
         run: |
           export ALLOW_MISSING_DEPENDENCIES=true
           source build/envsetup.sh
-          lunch twrp_a20-trunk_staging-eng
+          lunch twrp_a20-ap2a-eng
           mka recoveryimage -j$(nproc --all)
 
       # ─────────────────────────────
