@@ -173,6 +173,21 @@ jobs:
           echo "========== PATCHED vendorsetup.sh =========="
           cat device/samsung/a20/vendorsetup.sh
 
+
+      - name: Patch BoardConfig for TWRP 14.1
+        working-directory: ${{ github.workspace }}/twrp
+        run: |
+          echo "Patching BoardConfig.mk for TWRP 14.1..."
+
+          sed -i '/^[[:space:]]*TARGET_USES_64_BIT_BINDER[[:space:]]*[:?+]?=/d' \
+            device/samsung/a20/BoardConfig.mk
+
+          sed -i '/^[[:space:]]*BOARD_BUILD_SYSTEM_ROOT_IMAGE[[:space:]]*[:?+]?=/d' \
+            device/samsung/a20/BoardConfig.mk
+
+          echo
+          echo "========== PATCHED BoardConfig.mk =========="
+          nl -ba device/samsung/a20/BoardConfig.mk | sed -n '20,80p'
       # ─────────────────────────────
       # Setup Build Environment
       # ─────────────────────────────
