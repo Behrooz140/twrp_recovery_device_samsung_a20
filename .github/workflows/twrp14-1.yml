@@ -157,21 +157,21 @@ jobs:
 
           # Replace lunch choices for TWRP 14.1
           cat > device/samsung/a20/AndroidProducts.mk <<'EOF'
-#
-# Copyright (C) 2026 The Android Open Source Project
-# Copyright (C) 2026 SebaUbuntu's TWRP device tree generator
-#
-# SPDX-License-Identifier: Apache-2.0
-#
+          #
+          # Copyright (C) 2026 The Android Open Source Project
+          # Copyright (C) 2026 SebaUbuntu's TWRP device tree generator
+          #
+          # SPDX-License-Identifier: Apache-2.0
+          #
 
-PRODUCT_MAKEFILES := \
-    $(LOCAL_DIR)/twrp_a20.mk
+          PRODUCT_MAKEFILES := \
+              $(LOCAL_DIR)/twrp_a20.mk
 
-COMMON_LUNCH_CHOICES := \
-    twrp_a20-ap2a-eng \
-    twrp_a20-ap2a-userdebug \
-    twrp_a20-ap2a-user
-EOF
+          COMMON_LUNCH_CHOICES := \
+              twrp_a20-ap2a-eng \
+              twrp_a20-ap2a-userdebug \
+              twrp_a20-ap2a-user
+          EOF
 
           echo
           echo "===== AFTER PATCH ====="
