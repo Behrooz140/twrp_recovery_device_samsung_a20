@@ -197,17 +197,35 @@ jobs:
           source build/envsetup.sh
           lunch twrp_a20-ap2a-eng
 
+
+  - name: Check Runner Resources
+    run: |
+      echo "===== CPU ====="
+      nproc
+      lscpu | grep -E 'CPU\(s\)|Model name'
+
+      echo "===== MEMORY ====="
+      free -h
+
+      echo "===== DISK ====="
+      df -h
+
       # ─────────────────────────────
       # Build Recovery
       # ─────────────────────────────
 
-      - name: Build TWRP
-        working-directory: ${{ github.workspace }}/twrp
-        run: |
-          export ALLOW_MISSING_DEPENDENCIES=true
-          source build/envsetup.sh
-          lunch twrp_a20-ap2a-eng
-          mka recoveryimage -j$(nproc --all)
+  - name: Build TWRP
+  working-directory: ${{ github.workspace }}/twrp
+    run: |
+      export ALLOW_MISSING_DEPENDENCIES=true
+      source build/envsetup.sh
+      lunch twrp_a20-ap2a-eng
+
+      echo "===== BEFORE BUILD ====="
+      free -h
+      df -h
+
+      mka recoveryimage -j$(nproc --all)
 
       # ─────────────────────────────
       # Check Output
